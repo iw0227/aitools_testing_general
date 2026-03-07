@@ -15,6 +15,14 @@ users.map(user => (
 ));
 
 
+/**
+ * Render the top-level routing for the app and manage simple authentication state.
+ *
+ * On mount, reads localStorage key 'loggedIn' to initialize the login state.
+ * Exposes handlers to mark the user as logged in and to log out (which removes the 'loggedIn' key).
+ *
+ * @returns {JSX.Element} The app's route tree with routes and redirects based on authentication state.
+ */
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 

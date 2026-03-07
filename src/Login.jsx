@@ -4,6 +4,17 @@ import { useNavigate } from 'react-router-dom'
 const VALID_USER = 'admin'
 const VALID_PASS = 'password123'
 
+/**
+ * Render a login form and handle credential validation and navigation.
+ *
+ * Presents username and password inputs, displays an error message on failed authentication,
+ * and on successful authentication stores a 'loggedIn' flag, calls the provided `onLogin` callback,
+ * and navigates to the dashboard.
+ *
+ * @param {Object} props
+ * @param {function} props.onLogin - Callback invoked after a successful login.
+ * @returns {JSX.Element} The login form UI.
+ */
 export default function Login({ onLogin }) {
   const [user, setUser] = useState('')
   const [pass, setPass] = useState('')
