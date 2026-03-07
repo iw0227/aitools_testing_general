@@ -3,16 +3,6 @@ import { useState, useEffect } from 'react'
 import Login from './Login.jsx'
 import Dashboard from './Dashboard.jsx'
 
-const a = 10; // unused variable
-
-console.log("debug");
-console.log("debug2");
-console.log("debug3");
-
-users.map(user => (
-  <div>{user.name}</div>
-));
-
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
