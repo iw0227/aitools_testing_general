@@ -1,0 +1,75 @@
+# CodeRabbit Auto Fix - runs on all branches (dynamic, no fixed branch list)
+name: CodeRabbit Auto Fix
+
+on:
+  pull_request_review_comment:
+    types: [created]
+    # No branches filter = runs for PRs from any branch (dynamic all branches)
+
+jobs:
+  ai_fix:
+    runs-on: ubuntu-latest
+    if: github.event.comment.user.login == 'coderabbitai'
+    permissions:
+      contents: write
+    steps:
+      - name: Check if comment from CodeRabbit
+        run: echo "CodeRabbit comment detected"
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send suggestion to Codegen AI
+        env:
+          COMMENT_BODY: ${{ toJSON(github.event.comment.body) }}
+          CODEGEN_API_KEY: ${{ secrets.CODEGEN_API_KEY }}
+        run: |
+          curl -X POST https://api.codegen.ai/fix \
+            -H "Authorization: Bearer $CODEGEN_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"comment\":$COMMENT_BODY}"
+
+      - name: Commit fixes
+        run: |
+          git config user.name "ai-bot"
+          git config user.email "ai@bot.com"
+          git add .
+          git diff --staged --quiet || git commit -m "fix: apply coderabbit suggestion"
+          git push
+
+      - name: Post comment to ClickUp task (optional)
+        env:
+          CLICKUP_API_KEY: ${{ secrets.CLICKUP_API_KEY }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          # Use task ID from secret, or extract from PR (ClickUp link or "task id: 123" in description/title)
+          TASK_ID="${{ secrets.CLICKUP_TASK_ID }}"
+          if [ -z "$TASK_ID" ]; then
+            TEXT="$PR_BODY $PR_TITLE"
+            # From ClickUp URL (e.g. ...clickup.com/.../901234567890)
+            TASK_ID=$(echo "$TEXT" | grep -oE 'https://app\.clickup\.com/[^[:space:]]+' | sed 's|.*/||' | grep -oE '^[0-9]{9,}$' | head -1)
+          fi
+          if [ -z "$TASK_ID" ]; then
+            echo "No ClickUp task ID (no secret and none in PR). Skipping ClickUp comment."
+            exit 0
+          fi
+          COMMENT="**CodeRabbit Auto-Fix applied**
+          - PR: ${PR_URL}
+          - Title: ${PR_TITLE}
+          - A CodeRabbit review suggestion was sent to Codegen and fixes were committed to the branch."
+          BODY=$(jq -n --arg text "$COMMENT" '{comment_text: $text, notify_all: false}')
+          curl -s -w "\n%{http_code}" -X POST "https://api.clickup.com/api/v2/task/${TASK_ID}/comment" \
+            -H "Authorization: $CLICKUP_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$BODY" | tee /tmp/clickup_resp.txt
+          HTTP_CODE=$(tail -n1 /tmp/clickup_resp.txt)
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ClickUp API returned $HTTP_CODE. Check CLICKUP_API_KEY and task ID."
+            exit 0
+          fi
+          echo "Posted comment to ClickUp task $TASK_ID"

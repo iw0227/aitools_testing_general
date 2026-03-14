@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const studentData = [
   { id: 1, name: 'Alex Johnson', email: 'alex@school.com', course: 'Math', grade: 'A', imageUrl: 'https://i.pravatar.cc/80?u=1' },
@@ -10,18 +11,21 @@ const studentData = [
 ]
 
 export default function Dashboard({ onLogout }) {
-  const tableData = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User' },
-    { id: 3, name: 'Bob Wilson', email: 'bob@example.com', role: 'User' },
-    { id: 4, name: 'Alice Brown', email: 'alice@example.com', role: 'Editor' },
-    { id: 5, name: 'Charlie Davis', email: 'charlie@example.com', role: 'User' },
-    { id: 6, name: 'Eva Miller', email: 'eva@example.com', role: 'Admin' },
-    { id: 7, name: 'Frank Lee', email: 'frank@example.com', role: 'User' },
-  ]
+  const navigate = useNavigate()
+  const [tableData, setTableData] = useState([
+    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', grade: 'A' },
+    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User', grade: 'B' },
+    { id: 3, name: 'Bob Wilson', email: 'bob@example.com', role: 'User', grade: 'A' },
+    { id: 4, name: 'Alice Brown', email: 'alice@example.com', role: 'Editor', grade: 'B' },
+    { id: 5, name: 'Charlie Davis', email: 'charlie@example.com', role: 'User', grade: 'C' },
+    { id: 6, name: 'Eva Miller', email: 'eva@example.com', role: 'Admin', grade: 'A' },
+    { id: 7, name: 'Frank Lee', email: 'frank@example.com', role: 'User', grade: 'B' },
+  ])
 
   const [showStudentList, setShowStudentList] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState(null)
+  const [editMode, setEditMode] = useState(false)
+  const [editingRow, setEditingRow] = useState(null)
   const studentCount = studentData.length
   const studentsCopy = [...studentData]
 
@@ -39,12 +43,68 @@ export default function Dashboard({ onLogout }) {
     setSelectedStudent(null)
   }
 
+  function toggleEditMode() {
+    setEditMode(!editMode)
+    setEditingRow(null)
+  }
+
+  function handleEdit(row) {
+    setEditingRow({ ...row })
+  }
+
+  function handleSave() {
+    if (editingRow) {
+      setTableData(tableData.map(row => 
+        row.id === editingRow.id ? editingRow : row
+      ))
+      setEditingRow(null)
+    }
+  }
+
+  function handleCancel() {
+    setEditingRow(null)
+  }
+
+  function handleInputChange(field, value) {
+    setEditingRow({ ...editingRow, [field]: value })
+  }
+
   return (
     <div className="dashboard-wrap">
       <header>
         <h1>Dashboard</h1>
-        <button onClick={onLogout}>Logout</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => navigate('/settings')}>Settings</button>
+          <button onClick={onLogout}>Logout</button>
+        </div>
       </header>
+
+      {/* Hero Section */}
+      <div className="hero-section">
+        <h2>Welcome to Your Dashboard</h2>
+        <p>Manage your students, view grades, and track performance all in one place.</p>
+        <div className="hero-stats">
+          <div className="stat-card">
+            <h3>{tableData.length}</h3>
+            <p>Total Students</p>
+          </div>
+          <div className="stat-card">
+            <h3>{tableData.filter(s => s.grade === 'A').length}</h3>
+            <p>A Grade Students</p>
+          </div>
+          <div className="stat-card">
+            <h3>{studentCount}</h3>
+            <p>Enrolled Students</p>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
+        <button onClick={toggleEditMode}>
+          {editMode ? 'Exit Edit Mode' : 'Enable Edit Mode'}
+        </button>
+      </div>
+
       <table>
         <thead>
           <tr>
@@ -52,15 +112,64 @@ export default function Dashboard({ onLogout }) {
             <th>Name</th>
             <th>Email</th>
             <th>Role</th>
+            <th>Grade</th>
+            {editMode && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
           {tableData.map((row) => (
             <tr key={row.id}>
               <td>{row.id}</td>
-              <td>{row.name}</td>
-              <td>{row.email}</td>
-              <td>{row.role}</td>
+              <td>
+                {editingRow?.id === row.id ? (
+                  <input 
+                    value={editingRow.name} 
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                  />
+                ) : row.name}
+              </td>
+              <td>
+                {editingRow?.id === row.id ? (
+                  <input 
+                    value={editingRow.email} 
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                  />
+                ) : row.email}
+              </td>
+              <td>
+                {editingRow?.id === row.id ? (
+                  <input 
+                    value={editingRow.role} 
+                    onChange={(e) => handleInputChange('role', e.target.value)}
+                  />
+                ) : row.role}
+              </td>
+              <td>
+                {editingRow?.id === row.id ? (
+                  <select 
+                    value={editingRow.grade} 
+                    onChange={(e) => handleInputChange('grade', e.target.value)}
+                  >
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="F">F</option>
+                  </select>
+                ) : row.grade}
+              </td>
+              {editMode && (
+                <td>
+                  {editingRow?.id === row.id ? (
+                    <>
+                      <button onClick={handleSave}>Save</button>
+                      <button onClick={handleCancel}>Cancel</button>
+                    </>
+                  ) : (
+                    <button onClick={() => handleEdit(row)}>Edit</button>
+                  )}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
