@@ -45,11 +45,12 @@ jobs:
           CLICKUP_API_KEY: ${{ secrets.CLICKUP_API_KEY }}
           PR_BODY_JSON: ${{ toJSON(github.event.pull_request.body || '') }}
           PR_TITLE_JSON: ${{ toJSON(github.event.pull_request.title || '') }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
+          COMMENT_JSON: ${{ toJSON(github.event.comment.body || '') }}
         run: |
-          # Decode PR body/title safely (handles newlines and empty)
+          # Decode PR body/title and CodeRabbit comment safely (handles newlines and empty)
           PR_BODY=$(echo "$PR_BODY_JSON" | jq -r .)
           PR_TITLE=$(echo "$PR_TITLE_JSON" | jq -r .)
+          COMMENT_TEXT=$(echo "$COMMENT_JSON" | jq -r .)
           TEXT="$PR_BODY $PR_TITLE"
           echo "--- PR text length: ${#TEXT} chars (body+title) ---"
 
@@ -70,11 +71,8 @@ jobs:
           fi
           echo "Using ClickUp task_id: $TASK_ID"
 
-          COMMENT="**CodeRabbit Auto-Fix applied**
-          - PR: ${PR_URL}
-          - Title: ${PR_TITLE}
-          - A CodeRabbit review suggestion was sent to Codegen and fixes were committed to the branch."
-          BODY=$(jq -n --arg text "$COMMENT" '{comment_text: $text, notify_all: false}')
+          # Send the full CodeRabbit review comment text to ClickUp
+          BODY=$(jq -n --arg text "$COMMENT_TEXT" '{comment_text: $text, notify_all: false}')
 
           RESP=$(curl -s -w "\n%{http_code}" -X POST "https://api.clickup.com/api/v2/task/${TASK_ID}/comment" \
             -H "Authorization: $CLICKUP_API_KEY" \
@@ -87,4 +85,4 @@ jobs:
             echo "Check: CLICKUP_API_KEY (use pk_... token), task_id format, and repo secret."
             exit 0
           fi
-          echo "Posted comment to ClickUp task $TASK_ID"
+          echo "Posted CodeRabbit review comment to ClickUp task $TASK_ID"
