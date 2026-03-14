@@ -27,9 +27,10 @@ export default function Dashboard({ onLogout }) {
   const [editMode, setEditMode] = useState(false)
   const [editingRow, setEditingRow] = useState(null)
   const studentCount = studentData.length
-  const studentsCopy = [...studentData]
+  const studentsCopy = [...studentData] // Unused - for CodeRabbit test
   const [loading, setLoading] = useState(false) // Unused state
   var globalCounter = 0 // Global variable in component
+  const PAGE_SIZE = 10 // Magic number in component
 
   function handleShowList() {
     console.log('Student list opened')
@@ -89,6 +90,7 @@ export default function Dashboard({ onLogout }) {
         <div className="hero-stats">
           <div className="stat-card">
             <h3>{tableData.length}</h3>
+            <span>Test text</span>
             <p>Total Students</p>
           </div>
           <div className="stat-card">
@@ -198,7 +200,7 @@ export default function Dashboard({ onLogout }) {
         </div>
       )}
 
-      {selectedStudent != null && (
+      {selectedStudent != null && selectedStudent !== undefined && (
         <div className="popup-overlay" onClick={closePopup}>
           <div className="popup-box" onClick={(e) => e.stopPropagation()} style={{ padding: '20px' }}>
             <img src={selectedStudent.imageUrl} width="80" height="80" alt="" />
