@@ -43,33 +43,48 @@ jobs:
       - name: Post comment to ClickUp task (optional)
         env:
           CLICKUP_API_KEY: ${{ secrets.CLICKUP_API_KEY }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY_JSON: ${{ toJSON(github.event.pull_request.body || '') }}
+          PR_TITLE_JSON: ${{ toJSON(github.event.pull_request.title || '') }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
-          # Use task ID from secret, or extract from PR (ClickUp link or "task id: 123" in description/title)
+          # Decode PR body/title safely (handles newlines and empty)
+          PR_BODY=$(echo "$PR_BODY_JSON" | jq -r .)
+          PR_TITLE=$(echo "$PR_TITLE_JSON" | jq -r .)
+          TEXT="$PR_BODY $PR_TITLE"
+          echo "--- PR text length: ${#TEXT} chars (body+title) ---"
+
+          # Use task ID from secret, or extract from PR
           TASK_ID="${{ secrets.CLICKUP_TASK_ID }}"
           if [ -z "$TASK_ID" ]; then
-            TEXT="$PR_BODY $PR_TITLE"
-            # From ClickUp URL (e.g. ...clickup.com/.../901234567890)
-            TASK_ID=$(echo "$TEXT" | grep -oE 'https://app\.clickup\.com/[^[:space:]]+' | sed 's|.*/||' | grep -oE '^[0-9]{9,}$' | head -1)
+            # Short form: https://app.clickup.com/t/86d29zy04
+            TASK_ID=$(echo "$TEXT" | grep -oE 'clickup\.com/t/[a-z0-9]+' | head -1 | sed 's|.*/t/||')
           fi
           if [ -z "$TASK_ID" ]; then
-            echo "No ClickUp task ID (no secret and none in PR). Skipping ClickUp comment."
+            # Long form: .../901234567890 (numeric at end of URL)
+            TASK_ID=$(echo "$TEXT" | grep -oE 'https://app\.clickup\.com/[^[:space:]]+' | head -1 | sed 's|.*/||' | grep -oE '^[0-9]{9,}$' || true)
+          fi
+
+          if [ -z "$TASK_ID" ]; then
+            echo "No ClickUp task ID found (no CLICKUP_TASK_ID secret and no clickup.com URL in PR). Skipping."
             exit 0
           fi
+          echo "Using ClickUp task_id: $TASK_ID"
+
           COMMENT="**CodeRabbit Auto-Fix applied**
           - PR: ${PR_URL}
           - Title: ${PR_TITLE}
           - A CodeRabbit review suggestion was sent to Codegen and fixes were committed to the branch."
           BODY=$(jq -n --arg text "$COMMENT" '{comment_text: $text, notify_all: false}')
-          curl -s -w "\n%{http_code}" -X POST "https://api.clickup.com/api/v2/task/${TASK_ID}/comment" \
+
+          RESP=$(curl -s -w "\n%{http_code}" -X POST "https://api.clickup.com/api/v2/task/${TASK_ID}/comment" \
             -H "Authorization: $CLICKUP_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "$BODY" | tee /tmp/clickup_resp.txt
-          HTTP_CODE=$(tail -n1 /tmp/clickup_resp.txt)
+            -d "$BODY")
+          HTTP_CODE=$(echo "$RESP" | tail -n1)
+          echo "ClickUp API response code: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "ClickUp API returned $HTTP_CODE. Check CLICKUP_API_KEY and task ID."
+            echo "ClickUp response body: $(echo "$RESP" | sed '$d')"
+            echo "Check: CLICKUP_API_KEY (use pk_... token), task_id format, and repo secret."
             exit 0
           fi
           echo "Posted comment to ClickUp task $TASK_ID"
