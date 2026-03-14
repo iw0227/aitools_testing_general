@@ -53,11 +53,33 @@ If Codegen returns the fix in the response (e.g. patch or file contents), you ma
 
 Then the existing “Commit fixes” step will pick up those changes. If Codegen applies changes in another way (e.g. webhook that pushes to the repo), this step might not be needed.
 
-## 6. Permissions
+## 6. What you need – checklist (GitHub, CodeRabbit, ClickUp)
+
+| System      | Required? | What you need |
+|------------|-----------|----------------|
+| **GitHub** | Yes       | Repo with this workflow file. One secret: **`CODEGEN_API_KEY`**. |
+| **CodeRabbit** | Yes  | CodeRabbit app installed on the repo (reviews PRs and leaves comments). |
+| **ClickUp** | No       | Optional. Only if you want a comment posted to a ClickUp task: add **`CLICKUP_API_KEY`**. No need to set a task ID in secrets. |
+
+You do **not** need to configure anything per PR. You do **not** need to set a different `CLICKUP_TASK_ID` for each task.
+
+### ClickUp (optional – different task per PR, no secret)
+
+If you want the workflow to post a comment to a **ClickUp task** for a given PR:
+
+- Add secret **`CLICKUP_API_KEY`** (your ClickUp API token) in the repo.  
+- In **that PR’s description** (or title), paste the **ClickUp task link** for that task, e.g.  
+  `https://app.clickup.com/1234567/v/li/901234567890`  
+  The workflow will read the task ID from the URL and post the comment to that task.  
+- No **`CLICKUP_TASK_ID`** secret needed. Each PR can point to a different task by putting that task’s link in the PR description.
+
+If you don’t add `CLICKUP_API_KEY` or don’t put a ClickUp link in the PR, the workflow simply skips posting to ClickUp and still does CodeRabbit → Codegen → commit.
+
+## 7. Permissions
 
 - The workflow has **`permissions: contents: write`** so it can push to the PR branch.
 - It uses **`GITHUB_TOKEN`** for checkout and push; no extra token is required unless your repo rules need it.
 
 ---
 
-**Summary:** Ensure **`CODEGEN_API_KEY`** is set in repo Actions secrets; the rest of the flow is set up for **dynamic all branches** with no fixed branch list.
+**Summary:** You only **must** set **`CODEGEN_API_KEY`** in GitHub and have CodeRabbit installed. ClickUp is optional; if you use it, add **`CLICKUP_API_KEY`** and put the ClickUp task link in the PR description when you want a comment on that task (no per-task secret).
