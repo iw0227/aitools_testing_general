@@ -13,8 +13,10 @@ on:
 jobs:
   ai_fix:
     runs-on: ubuntu-latest
-
-    if: contains(github.event.comment.user.login, 'coderabbit')
+    # Run on CodeRabbit line comment OR CodeRabbit full review (so ClickUp gets comment in both cases)
+    if: |
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.user.login, 'coderabbit')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.user.login, 'coderabbit'))
 
     permissions:
       contents: write
@@ -28,10 +30,21 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract CodeRabbit comment
+      - name: Extract CodeRabbit comment (line comment or full review body)
         id: comment
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          COMMENT_JSON: ${{ toJSON(github.event.comment.body || '') }}
+          REVIEW_JSON: ${{ toJSON(github.event.review.body || '') }}
         run: |
-          echo "COMMENT_BODY=${{ github.event.comment.body }}" >> $GITHUB_ENV
+          if [ "$EVENT_NAME" = "pull_request_review_comment" ]; then
+            COMMENT_BODY=$(echo "$COMMENT_JSON" | jq -r .)
+          else
+            COMMENT_BODY=$(echo "$REVIEW_JSON" | jq -r .)
+          fi
+          echo "COMMENT_BODY<<DELIM" >> $GITHUB_ENV
+          echo "$COMMENT_BODY" >> $GITHUB_ENV
+          echo "DELIM" >> $GITHUB_ENV
 
       - name: Log CodeRabbit suggestion
         run: |
@@ -49,12 +62,18 @@ jobs:
         if: steps.codegen_check.outputs.enabled == 'true'
         env:
           CODEGEN_API_KEY: ${{ secrets.CODEGEN_API_KEY }}
-          COMMENT_BODY_JSON: ${{ toJSON(github.event.comment.body) }}
         run: |
-          curl -s -X POST https://api.codegen.ai/fix \
+          BODY=$(jq -n --arg c "$COMMENT_BODY" '{comment: $c}')
+          curl -s -w "\n%{http_code}" -X POST https://api.codegen.ai/fix \
             -H "Authorization: Bearer $CODEGEN_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "{\"comment\":$COMMENT_BODY_JSON}"
+            -d "$BODY" || true
+          code=$?
+          if [ $code -eq 6 ]; then
+            echo "::warning::Codegen API: curl exit 6 = Couldn't resolve host (DNS/network). Check api.codegen.ai."
+          elif [ $code -ne 0 ]; then
+            echo "::warning::Codegen API request failed with exit $code"
+          fi
 
       - name: Commit fixes if AI modified files
         run: |
@@ -94,12 +113,18 @@ jobs:
           Repo: ${{ github.repository }}
           Branch: ${{ github.event.pull_request.head.ref }}"
 
-          BODY=$(jq -n --arg text "$COMMENT" '{comment_text:$text}')
+          BODY=$(jq -n --arg text "$COMMENT" '{comment_text:$text, notify_all:false}')
 
-          curl -X POST https://api.clickup.com/api/v2/task/${TASK_ID}/comment \
+          curl -s -w "\n%{http_code}" -X POST "https://api.clickup.com/api/v2/task/${TASK_ID}/comment" \
             -H "Authorization: ${{ secrets.CLICKUP_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d "$BODY"
+            -d "$BODY" || true
+          code=$?
+          if [ $code -eq 6 ]; then
+            echo "::warning::ClickUp API: curl exit 6 = Couldn't resolve host (DNS/network). Check api.clickup.com."
+          elif [ $code -ne 0 ]; then
+            echo "::warning::ClickUp API request failed with exit $code"
+          fi
 
       - name: Finish
         run: echo "Workflow completed."
