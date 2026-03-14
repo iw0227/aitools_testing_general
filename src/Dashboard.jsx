@@ -89,6 +89,7 @@ export default function Dashboard({ onLogout }) {
         <div className="hero-stats">
           <div className="stat-card">
             <h3>{tableData.length}</h3>
+            <span>Test text</span>
             <p>Total Students</p>
           </div>
           <div className="stat-card">
