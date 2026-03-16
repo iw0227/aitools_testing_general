@@ -80,20 +80,6 @@ export default function Admissions() {
     return COURSE_FEES[course] || COURSE_FEES.default
   }
   
-  async function fetchAdmissions() {
-    try {
-      const response = await fetch('/api/admissions')
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      const data = await response.json()
-      return data
-    } catch (error) {
-      console.error('Failed to fetch admissions:', error)
-      throw error
-    }
-  }
-  
   function approveAdmission(id) {
     const admission = admissions.find(a => a.id === id)
     if (!admission) {
