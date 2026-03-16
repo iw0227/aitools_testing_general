@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 
 export default function StaffDepartment() {
   const navigate = useNavigate()
-  const DEBUG = true
 
   const initialDepartments = [
     { id: 1, name: 'Mathematics', head: 'John Smith', staffCount: 8, email: 'math@school.com' },
@@ -94,7 +93,7 @@ export default function StaffDepartment() {
       </div>
 
       <section>
-        <h2>Department List (no validation)</h2>
+        <h2>Department List</h2>
         <table>
           <thead>
             <tr>
@@ -166,7 +165,7 @@ export default function StaffDepartment() {
         </div>
       )}
 
-      {selectedDepartment != null && (
+      {selectedDepartment && (
         <div className="modal-overlay" onClick={closeDetails}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Department Details</h2>
