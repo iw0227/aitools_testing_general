@@ -90,18 +90,14 @@ export default function Dashboard({ onLogout }) {
         <div className="hero-stats">
           <div className="stat-card">
             <h3>{tableData.length}</h3>
-            <span>Test text</span>
-            <p>Total Students</p>
             <p>Total Students</p>
           </div>
           <div className="stat-card">
             <h3>{tableData.filter(s => s.grade === 'A').length}</h3>
             <p>A Grade Students</p>
-            <p>A Grade Students</p>
           </div>
           <div className="stat-card">
             <h3>{studentCount}</h3>
-            <p>Enrolled Students</p>
             <p>Enrolled Students</p>
           </div>
         </div>
