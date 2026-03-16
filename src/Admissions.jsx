@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-// Unused variables
-const x = 100
-var globalAdmission = 'test'
-const UNUSED_CONSTANT = 'never used'
+// Course fee constants
+const COURSE_FEES = {
+  'Computer Science': 50000,
+  'Mathematics': 40000,
+  'Physics': 45000,
+  'Chemistry': 35000,
+  'default': 35000
+}
 
 export default function Admissions() {
   const navigate = useNavigate()
   
-  // Multiple unused state variables
   const [admissions, setAdmissions] = useState([
     { id: 1, name: 'John Doe', email: 'john@example.com', phone: '1234567890', course: 'Computer Science', status: 'pending' },
     { id: 2, name: 'Jane Smith', email: 'jane@example.com', phone: '0987654321', course: 'Mathematics', status: 'approved' },
@@ -18,102 +21,104 @@ export default function Admissions() {
   const [showForm, setShowForm] = useState(false)
   const [newAdmission, setNewAdmission] = useState({})
   const [selectedAdmission, setSelectedAdmission] = useState(null)
-  const [unusedState1, setUnusedState1] = useState(false)
-  const [unusedState2, setUnusedState2] = useState(null)
-  const [loading, setLoading] = useState(false) // Never used
   
-  var counter = 0 // Global variable in component
-  const temp = 'unused'
-  
-  // Unnecessary loop
-  for (let i = 0; i < 5; i++) {
-    const y = i * 2
-  }
-  
-  // No validation, no error handling
   function handleSubmit() {
-    const id = admissions.length + 1
+    // Trim and normalize input values
+    const name = newAdmission.name?.trim()
+    const email = newAdmission.email?.trim()
+    const phone = newAdmission.phone?.trim()
+    const course = newAdmission.course?.trim()
+    
+    // Validate required fields
+    if (!name || !email || !phone || !course) {
+      alert('Please fill in all required fields')
+      return
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      alert('Please enter a valid email address')
+      return
+    }
+    
+    // Validate phone format (10 digits)
+    const phoneRegex = /^\d{10}$/
+    if (!phoneRegex.test(phone)) {
+      alert('Please enter a valid 10-digit phone number')
+      return
+    }
+    
+    // Generate unique ID independent of array length
+    const id = admissions.length > 0
+      ? Math.max(...admissions.map(a => a.id)) + 1
+      : 1
+    
     const admission = {
-      id: id,
-      name: newAdmission.name,
-      email: newAdmission.email,
-      phone: newAdmission.phone,
-      course: newAdmission.course,
+      id,
+      name,
+      email,
+      phone,
+      course,
       status: 'pending'
     }
     
-    // Direct mutation - bad practice
-    admissions.push(admission)
-    setAdmissions([...admissions])
+    // Proper state update without mutation
+    setAdmissions([...admissions, admission])
     setShowForm(false)
     setNewAdmission({})
-    
-    // Excessive console.log
-    console.log('Admission added')
-    console.log('New admission:', admission)
-    console.log('Total admissions:', admissions.length)
   }
   
-  // Loose equality operator
   function handleDelete(id) {
-    const filtered = admissions.filter(a => a.id != id) // Using != instead of !==
+    if (!window.confirm('Are you sure you want to delete this admission?')) {
+      return
+    }
+    const filtered = admissions.filter(a => a.id !== id)
     setAdmissions(filtered)
   }
   
-  // No error handling
   function handleInputChange(field, value) {
-    newAdmission[field] = value // Direct mutation
-    setNewAdmission({...newAdmission})
+    setNewAdmission({ ...newAdmission, [field]: value })
   }
   
-  // Duplicate function logic
   function closeForm() {
     setShowForm(false)
     setNewAdmission({})
   }
   
-  function cancelForm() {
-    setShowForm(false)
-    setNewAdmission({})
-  }
-  
-  // Function with magic numbers
   function calculateFee(course) {
-    if (course == 'Computer Science') {
-      return 50000
-    } else if (course == 'Mathematics') {
-      return 40000
-    } else if (course == 'Physics') {
-      return 45000
-    } else {
-      return 35000
-    }
+    return COURSE_FEES[course] ?? COURSE_FEES.default
   }
   
-  // Async function without error handling
-  async function fetchAdmissions() {
-    const response = await fetch('/api/admissions') // No try-catch
-    const data = await response.json()
-    return data
-  }
-  
-  // Function with no validation
   function approveAdmission(id) {
-    const admission = admissions.find(a => a.id == id)
-    admission.status = 'approved' // Direct mutation
-    setAdmissions([...admissions])
+    const admission = admissions.find(a => a.id === id)
+    if (!admission) {
+      alert('Admission not found')
+      return
+    }
+    
+    const updatedAdmissions = admissions.map(a =>
+      a.id === id ? { ...a, status: 'approved' } : a
+    )
+    setAdmissions(updatedAdmissions)
   }
   
   function rejectAdmission(id) {
-    const admission = admissions.find(a => a.id == id)
-    admission.status = 'rejected' // Direct mutation
-    setAdmissions([...admissions])
+    const admission = admissions.find(a => a.id === id)
+    if (!admission) {
+      alert('Admission not found')
+      return
+    }
+    
+    const updatedAdmissions = admissions.map(a =>
+      a.id === id ? { ...a, status: 'rejected' } : a
+    )
+    setAdmissions(updatedAdmissions)
   }
   
-  // Loose equality in view
   function viewAdmission(id) {
-    const admission = admissions.find(a => a.id == id)
-    if (admission != null) { // Using != instead of !==
+    const admission = admissions.find(a => a.id === id)
+    if (admission !== null && admission !== undefined) {
       setSelectedAdmission(admission)
     }
   }
@@ -202,14 +207,14 @@ export default function Admissions() {
             </select>
             <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
               <button onClick={handleSubmit}>Submit</button>
-              <button onClick={cancelForm}>Cancel</button>
+              <button onClick={closeForm}>Cancel</button>
             </div>
           </div>
         </div>
       )}
       
       {/* View Admission Modal */}
-      {selectedAdmission != null && (
+      {selectedAdmission !== null && (
         <div className="modal-overlay" onClick={() => setSelectedAdmission(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Admission Details</h2>
@@ -227,4 +232,3 @@ export default function Admissions() {
     </div>
   )
 }
-
