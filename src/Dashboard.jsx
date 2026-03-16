@@ -77,6 +77,7 @@ export default function Dashboard({ onLogout }) {
       <header>
         <h1>Dashboard</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => navigate('/admissions')}>Admissions</button>
           <button onClick={() => navigate('/teachers')}>Teachers</button>
           <button onClick={() => navigate('/settings')}>Settings</button>
           <button onClick={onLogout}>Logout</button>
