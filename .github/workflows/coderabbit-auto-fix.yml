@@ -60,11 +60,15 @@ jobs:
 
       # Optional Codegen integration
       - name: Send suggestion to Codegen AI
-        if: ${{ secrets.CODEGEN_API_KEY != '' }}
         env:
           CODEGEN_API_KEY: ${{ secrets.CODEGEN_API_KEY }}
         run: |
-          echo "Sending suggestion to Codegen (optional step)"
+          if [ -z "$CODEGEN_API_KEY" ]; then
+            echo "CODEGEN_API_KEY not configured, skipping Codegen step."
+            exit 0
+          fi
+
+          echo "Sending suggestion to Codegen AI"
 
           printf '%s' "$COMMENT_BODY" > /tmp/comment.txt
           BODY=$(jq -n --rawfile c /tmp/comment.txt '{comment:$c}')
