@@ -23,33 +23,43 @@ export default function Admissions() {
   const [selectedAdmission, setSelectedAdmission] = useState(null)
   
   function handleSubmit() {
+    // Trim and normalize input values
+    const name = newAdmission.name?.trim()
+    const email = newAdmission.email?.trim()
+    const phone = newAdmission.phone?.trim()
+    const course = newAdmission.course?.trim()
+    
     // Validate required fields
-    if (!newAdmission.name || !newAdmission.email || !newAdmission.phone || !newAdmission.course) {
+    if (!name || !email || !phone || !course) {
       alert('Please fill in all required fields')
       return
     }
     
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(newAdmission.email)) {
+    if (!emailRegex.test(email)) {
       alert('Please enter a valid email address')
       return
     }
     
     // Validate phone format (10 digits)
     const phoneRegex = /^\d{10}$/
-    if (!phoneRegex.test(newAdmission.phone)) {
+    if (!phoneRegex.test(phone)) {
       alert('Please enter a valid 10-digit phone number')
       return
     }
     
-    const id = admissions.length + 1
+    // Generate unique ID independent of array length
+    const id = admissions.length > 0
+      ? Math.max(...admissions.map(a => a.id)) + 1
+      : 1
+    
     const admission = {
       id,
-      name: newAdmission.name,
-      email: newAdmission.email,
-      phone: newAdmission.phone,
-      course: newAdmission.course,
+      name,
+      email,
+      phone,
+      course,
       status: 'pending'
     }
     
@@ -77,7 +87,7 @@ export default function Admissions() {
   }
   
   function calculateFee(course) {
-    return COURSE_FEES[course] || COURSE_FEES.default
+    return COURSE_FEES[course] ?? COURSE_FEES.default
   }
   
   function approveAdmission(id) {
