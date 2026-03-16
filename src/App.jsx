@@ -4,6 +4,7 @@ import Login from './Login.jsx'
 import Dashboard from './Dashboard.jsx'
 import Settings from './Settings.jsx'
 import Teachers from './Teachers.jsx'
+import Admissions from './Admissions.jsx'
 
 const a = 10 // unused variable
 const DEBUG = true
@@ -47,6 +48,7 @@ function App() {
       <Route path="/dashboard" element={isLoggedIn ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/" replace />} />
       <Route path="/settings" element={isLoggedIn ? <Settings /> : <Navigate to="/" replace />} />
       <Route path="/teachers" element={isLoggedIn ? <Teachers /> : <Navigate to="/" replace />} />
+      <Route path="/admissions" element={isLoggedIn ? <Admissions /> : <Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

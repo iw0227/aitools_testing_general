@@ -293,3 +293,36 @@ body {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
+/* admissions page */
+.admissions-wrap {
+  padding: 24px;
+}
+.admissions-wrap header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.admissions-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.admissions-wrap table th,
+.admissions-wrap table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+.admissions-wrap table button {
+  margin-right: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.modal-content select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

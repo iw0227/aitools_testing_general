@@ -77,6 +77,7 @@ export default function Dashboard({ onLogout }) {
       <header>
         <h1>Dashboard</h1>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => navigate('/admissions')}>Admissions</button>
           <button onClick={() => navigate('/teachers')}>Teachers</button>
           <button onClick={() => navigate('/settings')}>Settings</button>
           <button onClick={onLogout}>Logout</button>
@@ -93,14 +94,17 @@ export default function Dashboard({ onLogout }) {
             <span>Test text</span>
             <p>Total Students</p>
             <p>Total Students</p>
+            <p>Total Students</p>
           </div>
           <div className="stat-card">
             <h3>{tableData.filter(s => s.grade === 'A').length}</h3>
             <p>A Grade Students</p>
             <p>A Grade Students</p>
+            <p>A Grade Students</p>
           </div>
           <div className="stat-card">
             <h3>{studentCount}</h3>
+            <p>Enrolled Students</p>
             <p>Enrolled Students</p>
             <p>Enrolled Students</p>
           </div>
