@@ -1,18 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-// Intentionally messy / wrong logic for testing
-const DEBUG = true
-var dashboardGlobal = 0 // wrong use of var and global-ish state
-
-if (DEBUG == true) {
-  console.log('Dashboard loaded (debug)')
-  for (let i = 0; i < 5; i++) {
-    // pointless loop for CodeRabbit tests
-    dashboardGlobal = i * 2
-  }
-}
-
 const studentData = [
   { id: 1, name: 'Alex Johnson', email: 'alex@school.com', course: 'Math', grade: 'A', imageUrl: 'https://i.pravatar.cc/80?u=1' },
   { id: 2, name: 'Sam Williams', email: 'sam@school.com', course: 'Science', grade: 'B', imageUrl: 'https://i.pravatar.cc/80?u=2' },
