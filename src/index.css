@@ -584,6 +584,118 @@ body {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+/* staff departments page */
+.staff-departments-wrap {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.staff-departments-wrap header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  background: white;
+  padding: 24px 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+.staff-departments-wrap header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.staff-departments-wrap .header-nav {
+  display: flex;
+  gap: 8px;
+}
+.staff-departments-wrap .header-nav button,
+.staff-departments-wrap .staff-toolbar button,
+.staff-departments-wrap table button {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.staff-departments-wrap .header-nav button:hover,
+.staff-departments-wrap .staff-toolbar button:hover,
+.staff-departments-wrap table button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+}
+.staff-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+}
+.staff-toolbar p {
+  margin: 0;
+  font-weight: 600;
+  color: #4b5563;
+}
+.staff-table-section table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.staff-table-section th,
+.staff-table-section td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+.staff-table-section th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+.staff-table-section tbody tr {
+  transition: all 0.2s ease;
+}
+.staff-table-section tbody tr:hover {
+  background: #f8f9ff;
+}
+.staff-table-section tr:last-child td {
+  border-bottom: none;
+}
+.staff-table-actions {
+  display: flex;
+  gap: 8px;
+}
+.staff-empty-state {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}
+.staff-departments-wrap .btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+.staff-departments-wrap .btn-secondary:hover {
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.35);
+}
+.staff-departments-wrap .btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+.staff-departments-wrap .btn-danger:hover {
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
 /* modal styles */
 .modal-overlay {
   position: fixed;
@@ -647,6 +759,76 @@ body {
 .modal-content button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+.modal-content .error {
+  color: #991b1b;
+  font-size: 14px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: #fee2e2;
+  border-radius: 8px;
+  border-left: 4px solid #ef4444;
+}
+.staff-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.staff-form .form-field {
+  display: flex;
+  flex-direction: column;
+}
+.staff-form .form-field label {
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+.form-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.staff-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.staff-details-grid dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #6b7280;
+  letter-spacing: 0.04em;
+}
+.staff-details-grid dd {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  color: #111827;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .staff-departments-wrap header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .staff-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .staff-form {
+    grid-template-columns: 1fr;
+  }
+
+  .staff-details-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* admissions page */

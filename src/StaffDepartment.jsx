@@ -42,10 +42,10 @@ export default function StaffDepartment() {
     const maxId = departments.length > 0 ? Math.max(...departments.map(d => d.id)) : 0
     const dept = {
       id: maxId + 1,
-      name: newDepartment.name,
-      head: newDepartment.head || '',
+      name: newDepartment.name.trim(),
+      head: (newDepartment.head || '').trim(),
       staffCount: Number(newDepartment.staffCount) || 0,
-      email: newDepartment.email || '',
+      email: (newDepartment.email || '').trim(),
     }
     
     setDepartments([...departments, dept])
@@ -68,15 +68,19 @@ export default function StaffDepartment() {
   }
 
   function removeDepartment(id) {
+    const shouldRemove = window.confirm('Are you sure you want to remove this department?')
+    if (!shouldRemove) {
+      return
+    }
     const filtered = departments.filter((d) => d.id !== id)
     setDepartments(filtered)
   }
 
   return (
-    <div className="teachers-wrap">
+    <div className="staff-departments-wrap">
       <header>
         <h1>Staff Departments</h1>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="header-nav">
           <button onClick={handleBack}>Dashboard</button>
           <button onClick={() => navigate('/teachers')}>Teachers</button>
           <button onClick={() => navigate('/settings')}>Settings</button>
@@ -88,11 +92,12 @@ export default function StaffDepartment() {
         <p>Manage department details, view records, and keep staff information up to date.</p>
       </section>
 
-      <div style={{ marginBottom: '20px' }}>
+      <div className="staff-toolbar">
+        <p>Total Departments: {departments.length}</p>
         <button onClick={handleAddDepartment}>Add New Department</button>
       </div>
 
-      <section>
+      <section className="staff-table-section">
         <h2>Department List</h2>
         <table>
           <thead>
@@ -111,17 +116,21 @@ export default function StaffDepartment() {
                 <td>{dept.head}</td>
                 <td>{dept.staffCount}</td>
                 <td>{dept.email}</td>
-                <td>
-                  <button type="button" onClick={() => viewDepartment(dept)}>
+                <td className="staff-table-actions">
+                  <button className="btn-secondary" type="button" onClick={() => viewDepartment(dept)}>
                     View
                   </button>
-                  <button type="button" onClick={() => removeDepartment(dept.id)}>Remove</button>
+                  <button className="btn-danger" type="button" onClick={() => removeDepartment(dept.id)}>
+                    Remove
+                  </button>
                 </td>
               </tr>
             ))}
             {departments.length === 0 && (
               <tr>
-                <td colSpan={5}>No departments yet. Add one above.</td>
+                <td className="staff-empty-state" colSpan={5}>
+                  No departments yet. Add one above.
+                </td>
               </tr>
             )}
           </tbody>
@@ -132,34 +141,59 @@ export default function StaffDepartment() {
         <div className="modal-overlay" onClick={closeForm}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Add New Department</h2>
-            {formError && <div className="error">{formError}</div>}
-            <input
-              type="text"
-              placeholder="Name"
-              value={newDepartment.name || ''}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="Head"
-              value={newDepartment.head || ''}
-              onChange={(e) => handleInputChange('head', e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="Email"
-              value={newDepartment.email || ''}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-            />
-            <input
-              type="number"
-              placeholder="Staff Count"
-              value={newDepartment.staffCount || ''}
-              onChange={(e) => handleInputChange('staffCount', e.target.value)}
-            />
-            <div style={{ marginTop: '16px' }}>
-              <button onClick={saveDepartment}>Save</button>
-              <button onClick={closeForm}>Cancel</button>
+            {formError && (
+              <div className="error" id="staff-department-form-error">
+                {formError}
+              </div>
+            )}
+            <div className="staff-form">
+              <div className="form-field">
+                <label htmlFor="department-name">Department Name</label>
+                <input
+                  id="department-name"
+                  type="text"
+                  placeholder="Name"
+                  value={newDepartment.name || ''}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  aria-invalid={Boolean(formError)}
+                  aria-describedby={formError ? 'staff-department-form-error' : undefined}
+                />
+              </div>
+              <div className="form-field">
+                <label htmlFor="department-head">Department Head</label>
+                <input
+                  id="department-head"
+                  type="text"
+                  placeholder="Head"
+                  value={newDepartment.head || ''}
+                  onChange={(e) => handleInputChange('head', e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label htmlFor="department-email">Department Email</label>
+                <input
+                  id="department-email"
+                  type="email"
+                  placeholder="Email"
+                  value={newDepartment.email || ''}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                />
+              </div>
+              <div className="form-field">
+                <label htmlFor="department-staff-count">Staff Count</label>
+                <input
+                  id="department-staff-count"
+                  type="number"
+                  min="0"
+                  placeholder="Staff Count"
+                  value={newDepartment.staffCount || ''}
+                  onChange={(e) => handleInputChange('staffCount', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <button type="button" onClick={saveDepartment}>Save</button>
+              <button type="button" className="btn-secondary" onClick={closeForm}>Cancel</button>
             </div>
           </div>
         </div>
@@ -169,11 +203,25 @@ export default function StaffDepartment() {
         <div className="modal-overlay" onClick={closeDetails}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>Department Details</h2>
-            <p><strong>Name:</strong> {selectedDepartment.name}</p>
-            <p><strong>Head:</strong> {selectedDepartment.head}</p>
-            <p><strong>Email:</strong> {selectedDepartment.email}</p>
-            <p><strong>Staff Count:</strong> {selectedDepartment.staffCount}</p>
-            <button onClick={closeDetails}>Close</button>
+            <dl className="staff-details-grid">
+              <div>
+                <dt>Name</dt>
+                <dd>{selectedDepartment.name}</dd>
+              </div>
+              <div>
+                <dt>Head</dt>
+                <dd>{selectedDepartment.head || '-'}</dd>
+              </div>
+              <div>
+                <dt>Email</dt>
+                <dd>{selectedDepartment.email || '-'}</dd>
+              </div>
+              <div>
+                <dt>Staff Count</dt>
+                <dd>{selectedDepartment.staffCount}</dd>
+              </div>
+            </dl>
+            <button type="button" onClick={closeDetails}>Close</button>
           </div>
         </div>
       )}
