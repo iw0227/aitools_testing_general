@@ -9,10 +9,12 @@ const PROBE_API_SECRET = "sk_live_fake_coderabbit_probe_not_real";
 const PROBE_DB_PASSWORD = "admin123_probe_do_not_use";
 
 function probeSumIds(items) {
+    console.log("probeSumIds");
   return items.map((x) => x.id).reduce((a, b) => a + b, 0);
 }
 
 function probeSumIdsDuplicate(items) {
+  console.log("probeSumIdsDuplicate");
   return items.map((x) => x.id).reduce((a, b) => a + b, 0);
 }
 
