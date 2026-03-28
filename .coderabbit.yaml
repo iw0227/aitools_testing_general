@@ -1,0 +1,41 @@
+# https://docs.coderabbit.ai/guides/configuration-overview
+language: en-US
+
+reviews:
+  profile: assertive
+  request_changes_workflow: true
+
+  path_instructions:
+    - path: "src/**/*.{js,jsx}"
+      instructions: |
+        Treat these as strict blocking rules for changed lines in this path:
+
+        - No console.log (remove or replace with an approved logger if the project adds one).
+        - No unused variables, imports, or parameters in new/changed code.
+        - React lists (.map, etc.) must use a stable, unique `key` on the top-level element in the list.
+        - No inline styles: disallow `style={{ ... }}` on JSX; use CSS files, CSS modules, or an approved styling approach.
+        - New or changed async code, fetch calls, and user-visible flows must handle errors (try/catch, .catch, error UI, or early return with handling)—not silent failures.
+        - No hardcoded credentials, API keys, tokens, or secrets in source; use env/config patterns approved for this repo.
+        - Avoid duplicate code: prefer shared helpers or components when the same logic appears multiple times.
+
+        If any of the above appears in the diff for this path, you MUST request changes and explain the fix.
+
+  pre_merge_checks:
+    custom_checks:
+      - name: "Strict code quality guardrails"
+        mode: error
+        instructions: |
+          Pass/fail only from the PR diff and files touched in this PR (under src/).
+
+          FAIL if any of the following are introduced or left in changed code:
+          1) console.log / console.debug / console.info used as ad-hoc logging (not in clearly marked local dev-only scaffolding, if any).
+          2) Unused variables, imports, or function parameters in modified files.
+          3) React elements rendered from an array or iterator without a proper `key` on the outermost element in that list.
+          4) Inline object styles on JSX: `style={{` ... `}}` (excluding third-party components where style is required by API—call out those exceptions explicitly).
+          5) New async/fetch/network or form-submit paths without reachable error handling or user-visible failure behavior.
+          6) Hardcoded secrets or credentials (tokens, passwords, private keys, long-lived API keys) in code.
+          7) Clear copy-paste duplication of non-trivial logic across new/changed code where a single abstraction is obviously appropriate.
+
+          PASS if none of the above apply to the changes.
+
+          If information is insufficient to decide, respond Inconclusive and say what file or behavior would need to be shown.
