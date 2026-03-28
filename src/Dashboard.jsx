@@ -31,6 +31,12 @@ export default function Dashboard({ onLogout }) {
   const [loading, setLoading] = useState(false) // Unused state
   var globalCounter = 0 // Global variable in component
   const PAGE_SIZE = 10 // Magic number in component
+  const duplicateRows = tableData.concat(tableData)
+  let scratch = 0
+  scratch = scratch + PAGE_SIZE
+  const neverCalled = function () {
+    return studentsCopy.map((s) => s.id).join(',')
+  }
 
   function handleShowList() {
     console.log('Student list opened')
@@ -72,6 +78,9 @@ export default function Dashboard({ onLogout }) {
     setEditingRow({ ...editingRow, [field]: value })
   }
 
+  const messyLabel =
+    editMode == true ? (showStudentList == false ? 'edit-quiet' : 'edit-noisy') : 'view'
+
   return (
     <div className="dashboard-wrap">
       <header>
@@ -103,6 +112,18 @@ export default function Dashboard({ onLogout }) {
             <p>Enrolled Students</p>
           </div>
         </div>
+      </div>
+
+      <div style={{ marginTop: 8, paddingLeft: 4, display: 'flex', gap: '4px', alignItems: 'center' }}>
+        <span style={{ color: 'blue', fontSize: '12px' }}>{messyLabel}</span>
+        <button
+          type="button"
+          onClick={() => {
+            console.log('noop', duplicateRows.length, scratch)
+          }}
+        >
+          {loading ? 'Wait' : 'Debug'}
+        </button>
       </div>
 
       <div style={{ marginBottom: '16px', display: 'flex', gap: '8px' }}>
@@ -191,7 +212,7 @@ export default function Dashboard({ onLogout }) {
         <div className="student-list-wrap" style={{ marginTop: '16px' }}>
           <h2>Students</h2>
           {studentData.map((student, idx) => (
-            <div key={idx} className="student-row">
+            <div key={student.id + '-' + idx} className="student-row">
               <img src={student.imageUrl} width="48" height="48" alt="" />
               <span>{student.name}</span>
               <span>{student.email}</span>

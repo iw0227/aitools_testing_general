@@ -61,19 +61,19 @@ Then the existing “Commit fixes” step will pick up those changes. If Codegen
 | **CodeRabbit** | Yes  | CodeRabbit app installed on the repo (reviews PRs and leaves comments). |
 | **ClickUp** | No       | Optional. Only if you want a comment posted to a ClickUp task: add **`CLICKUP_API_KEY`**. No need to set a task ID in secrets. |
 
-You do **not** need to configure anything per PR. You do **not** need to set a different `CLICKUP_TASK_ID` for each task.
+Per-PR task resolution is optional; use **`process.md`**, the PR description/title, or a fallback secret (see below).
 
-### ClickUp (optional – different task per PR, no secret)
+### ClickUp (optional – task per branch / PR)
 
-If you want the workflow to post a comment to a **ClickUp task** for a given PR:
+If you want the workflow to post a comment to a **ClickUp task**:
 
-- Add secret **`CLICKUP_API_KEY`** (your ClickUp API token) in the repo.  
-- In **that PR’s description** (or title), paste the **ClickUp task link** for that task, e.g.  
-  `https://app.clickup.com/1234567/v/li/901234567890`  
-  The workflow will read the task ID from the URL and post the comment to that task.  
-- No **`CLICKUP_TASK_ID`** secret needed. Each PR can point to a different task by putting that task’s link in the PR description.
+- Add secret **`CLICKUP_API_KEY`** (your ClickUp API token) in the repo.
+- Resolve the task id in this **order**:
+  1. **`process.md`** at the **repo root** on the PR branch, with `clickup_task:` (URL or raw id) and optional `branch:` (warns if it does not match the PR head branch). Copy from **`process.md.example`**.
+  2. A ClickUp URL in the **PR title or description** (supports common `app.clickup.com/.../t/<id>` shapes).
+  3. Repository secret **`CLICKUP_TASK_ID`** as a last resort (same task for every run).
 
-If you don’t add `CLICKUP_API_KEY` or don’t put a ClickUp link in the PR, the workflow simply skips posting to ClickUp and still does CodeRabbit → Codegen → commit.
+If you don’t add `CLICKUP_API_KEY` or no task id is resolved, the workflow skips posting to ClickUp and still does CodeRabbit → Codegen → commit.
 
 ## 7. Permissions
 
@@ -82,4 +82,4 @@ If you don’t add `CLICKUP_API_KEY` or don’t put a ClickUp link in the PR, th
 
 ---
 
-**Summary:** You only **must** set **`CODEGEN_API_KEY`** in GitHub and have CodeRabbit installed. ClickUp is optional; if you use it, add **`CLICKUP_API_KEY`** and put the ClickUp task link in the PR description when you want a comment on that task (no per-task secret).
+**Summary:** You only **must** set **`CODEGEN_API_KEY`** in GitHub and have CodeRabbit installed. ClickUp is optional; if you use it, add **`CLICKUP_API_KEY`** and set **`process.md`** on the branch and/or a link in the PR, or **`CLICKUP_TASK_ID`** as fallback.

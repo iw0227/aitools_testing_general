@@ -1,0 +1,26 @@
+# Branch process metadata
+
+Copy this file to **`process.md`** on your branch and fill in the values. Commit `process.md` on the feature branch so the CodeRabbit → ClickUp workflow can resolve the task.
+
+| Key | Required | Description |
+|-----|----------|-------------|
+| `branch` | Optional | Should match the Git PR head branch. If it does not match, the workflow logs a warning. |
+| `clickup_task` | Yes (for ClickUp comments) | Full ClickUp task URL, or the raw task id. |
+
+Example (replace with your real branch and task):
+
+```text
+branch: cr_code_check
+clickup_task: https://app.clickup.com/t/86d22uk37
+```
+
+Raw task id only is also accepted:
+
+```text
+branch: cr_code_check
+clickup_task: 86d22uk37
+```
+
+Lines must start with the key (optional leading spaces). Use `key: value` on a single line. Inline `#` comments on the same line are stripped.
+
+If `process.md` is missing or has no `clickup_task`, the workflow falls back to a ClickUp URL in the **PR title or description**, then to the **`CLICKUP_TASK_ID`** repository secret.

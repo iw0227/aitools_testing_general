@@ -96,17 +96,78 @@ jobs:
           fi
 
       - name: Extract ClickUp task ID
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          SECRET_TASK_ID: ${{ secrets.CLICKUP_TASK_ID }}
         run: |
-          TEXT="${{ github.event.pull_request.body }} ${{ github.event.pull_request.title }}"
+          TASK_ID=""
 
-          TASK_ID=$(echo "$TEXT" | grep -oE 'clickup\.com/t/[a-z0-9]+' | head -1 | sed 's|.*/t/||')
+          proc_get() {
+            local key="$1"
+            local file="$2"
+            local line
+            line=$(grep -E "^[[:space:]]*${key}:[[:space:]]*" "$file" | head -1 || true)
+            [ -z "$line" ] && return 0
+            echo "$line" | sed -E "s/^[[:space:]]*${key}:[[:space:]]*//;s/[[:space:]]*#.*$//;s/[[:space:]]*$//;s/^[\"']//;s/[\"']$//"
+          }
+
+          id_from_clickup_string() {
+            local s="$1"
+            local id
+            id=$(echo "$s" | grep -oEi '/t/[a-z0-9]+' | tail -1 | sed 's|^/t/||' || true)
+            if [ -z "$id" ]; then
+              id=$(echo "$s" | grep -oEi 'clickup\.com/t/[a-z0-9]+' | head -1 | sed 's|.*/t/||' || true)
+            fi
+            echo "$id"
+          }
+
+          if [ -f process.md ]; then
+            echo "Found process.md; parsing clickup_task and optional branch."
+            PROC_BRANCH=$(proc_get branch process.md || true)
+            PROC_TASK_RAW=$(proc_get clickup_task process.md || true)
+            if [ -n "$PROC_BRANCH" ] && [ "$PROC_BRANCH" != "$HEAD_REF" ]; then
+              echo "::warning::process.md branch '$PROC_BRANCH' does not match PR head ref '$HEAD_REF'"
+            fi
+            if [ -n "$PROC_TASK_RAW" ]; then
+              if echo "$PROC_TASK_RAW" | grep -qi 'clickup\.com'; then
+                TASK_ID=$(id_from_clickup_string "$PROC_TASK_RAW")
+              else
+                CLEAN=$(echo "$PROC_TASK_RAW" | tr -d '\r')
+                if echo "$CLEAN" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+                  TASK_ID="$CLEAN"
+                fi
+              fi
+              if [ -n "$TASK_ID" ]; then
+                echo "ClickUp task id from process.md: $TASK_ID"
+              fi
+            fi
+          else
+            echo "No process.md in repo root; will try PR text then secret."
+          fi
 
           if [ -z "$TASK_ID" ]; then
-            TASK_ID="${{ secrets.CLICKUP_TASK_ID }}"
+            TEXT="${PR_BODY} ${PR_TITLE}"
+            FIRST_URL=$(echo "$TEXT" | grep -oEi 'https?://[^[:space:]]*clickup\.com[^[:space:]]*' | head -1 || true)
+            if [ -n "$FIRST_URL" ]; then
+              TASK_ID=$(id_from_clickup_string "$FIRST_URL")
+            fi
+            if [ -z "$TASK_ID" ]; then
+              TASK_ID=$(echo "$TEXT" | grep -oEi 'clickup\.com/t/[a-z0-9]+' | head -1 | sed 's|.*/t/||' || true)
+            fi
+            if [ -n "$TASK_ID" ]; then
+              echo "ClickUp task id from PR title/body: $TASK_ID"
+            fi
+          fi
+
+          if [ -z "$TASK_ID" ] && [ -n "$SECRET_TASK_ID" ]; then
+            TASK_ID="$SECRET_TASK_ID"
+            echo "ClickUp task id from CLICKUP_TASK_ID secret."
           fi
 
           echo "TASK_ID=$TASK_ID" >> $GITHUB_ENV
-          echo "Detected ClickUp task ID: $TASK_ID"
+          echo "Final ClickUp task id: ${TASK_ID:-<empty>}"
 
       - name: Post CodeRabbit suggestion to ClickUp
         if: env.TASK_ID != ''

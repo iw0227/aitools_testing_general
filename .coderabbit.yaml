@@ -4,6 +4,8 @@ language: en-US
 reviews:
   profile: assertive
   request_changes_workflow: true
+  # Model used, per-step timing, and other diagnostics in review comments (troubleshooting / context).
+  review_details: true
 
   path_instructions:
     - path: "src/**/*.{js,jsx}"
