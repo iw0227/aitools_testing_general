@@ -1,42 +1,99 @@
 /**
- * Temporary file to verify .coderabbit.yaml path_instructions + pre-merge checks.
- * Delete this file after you confirm CodeRabbit flags the issues below.
+ * TEMP: CodeRabbit rule probe — delete after verifying .coderabbit.yaml.
+ * Expect flags: console.*, unused vars/imports, missing list keys, inline styles,
+ * unhandled fetch/async, hardcoded secrets, duplicate logic/JSX, empty catch.
  */
-const HARDCODED_SERVICE_TOKEN = "ghp_fake_token_for_coderabbit_probe_only";
+import { useState, useEffect, useMemo } from "react";
 
-function countItemsForProbe(list) {
-  return list.filter(Boolean).length;
+const PROBE_API_SECRET = "sk_live_fake_coderabbit_probe_not_real";
+const PROBE_DB_PASSWORD = "admin123_probe_do_not_use";
+
+function probeSumIds(items) {
+  return items.map((x) => x.id).reduce((a, b) => a + b, 0);
 }
 
-function countItemsForProbeCopy(list) {
-  return list.filter(Boolean).length;
+function probeSumIdsDuplicate(items) {
+  return items.map((x) => x.id).reduce((a, b) => a + b, 0);
+}
+
+function probeFetchUsersBad() {
+  return fetch(`https://example.test/api?password=${PROBE_DB_PASSWORD}`).then((r) => r.json());
 }
 
 export function CodeRabbitRuleProbe() {
-  const neverRead = "unused";
+  const unusedProbeFlag = true;
+  var unusedProbeVar = "never read";
 
-  console.log("CodeRabbit probe: should be flagged");
+  console.log("[probe] should flag console.log");
+  console.info("[probe] should flag console.info");
+  console.debug("[probe] should flag console.debug");
 
-  const rows = ["one", "two"];
+  const list = [
+    { id: 1, name: "a" },
+    { id: 2, name: "b" },
+  ];
 
-  const loadData = async () => {
-    const res = await fetch("/api/demo", {
-      headers: { Authorization: `Bearer ${HARDCODED_SERVICE_TOKEN}` },
+  const tags = ["x", "y", "z"];
+
+  const fetchWithoutHandling = async () => {
+    const response = await fetch("/api/probe", {
+      headers: {
+        "X-Api-Key": PROBE_API_SECRET,
+        Authorization: `Basic ${btoa(`probe:${PROBE_DB_PASSWORD}`)}`,
+      },
     });
-    return res.json();
+    return response.json();
+  };
+
+  const swallowErrors = async () => {
+    try {
+      await probeFetchUsersBad();
+    } catch (_e) {}
   };
 
   return (
-    <div style={{ marginTop: 12, border: "1px solid #ccc" }}>
-      <button type="button" onClick={() => loadData()}>
-        Load (no error handling)
+    <section style={{ padding: 16, backgroundColor: "#fafafa" }}>
+      <div style={{ display: "flex", gap: 8 }}>
+        <span style={{ color: "red" }}>inline span</span>
+        <span style={{ color: "blue" }}>inline span 2</span>
+      </div>
+
+      <button
+        type="button"
+        style={{ fontWeight: "bold" }}
+        onClick={() => {
+          fetchWithoutHandling();
+          swallowErrors();
+        }}
+      >
+        Trigger fetch (promises ignored, no catch)
       </button>
+
       <ul>
-        {rows.map((label) => (
-          <li>{label}</li>
+        {list.map((row) => (
+          <li>
+            {row.name} (missing key prop)
+          </li>
         ))}
       </ul>
-    </div>
+
+      <div>
+        {tags.map((t) => (
+          <span>{t}</span>
+        ))}
+      </div>
+
+      <div className="probe-dup-block">
+        <p>Duplicate JSX block A</p>
+        <button type="button">OK</button>
+      </div>
+      <div className="probe-dup-block">
+        <p>Duplicate JSX block A</p>
+        <button type="button">OK</button>
+      </div>
+
+      <p>Unused duplicate helpers: {probeSumIds(list)} vs {probeSumIdsDuplicate(list)}</p>
+    </section>
   );
 }
 
